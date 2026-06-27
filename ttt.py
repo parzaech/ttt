@@ -39,10 +39,36 @@ class ticmactoe:
         row = action//3
         col = action%3
 
-
-
+        #penalty for wrong action selection
+        if(self.board[row,col]!=0):
+            reward = -10
+            done = True
+            return tuple(self.board.flatten()), reward, done
 
         #reward
+        self.board[row, col] = self.current_player
+
+        #winner
+        if(self.check_win != 0):
+            reward = 1
+            done = True
+            return tuple(self.board.flatten()), reward, done
+        #draw
+        elif(not np.any(self.board==0)):
+            reward = 0
+            done = True
+            return tuple(self.board.flatten()), reward, done
+        #intermediate move
+        else:
+            reward = 0
+            done = False
+        
+        self.current_player *= -1
+        return tuple(self.board.flatten()), reward, done
+    
+
+            
+
               
 #COUNT
 #If we start with X, then at every step if its O's turn, x = o + 1 && if its X's turn, x = o
