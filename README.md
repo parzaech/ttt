@@ -4,12 +4,7 @@ Learning Reinforcement Learning from scratch by implementing a Tic-Tac-Toe envir
 
 ## TODOs
 
-- [x] Defining MDP tuple
-  - State
-  - Action
-  - Transition Probability
-  - Reward
-  - γ (Discount Factor)
+ - [x] Defining MDP tuple — State, Action, Transition Probability, Reward, γ (Discount Factor)
 
 - [x] Defining functions
   - `step(action)`
@@ -24,15 +19,6 @@ Learning Reinforcement Learning from scratch by implementing a Tic-Tac-Toe envir
 - [ ] Q-Function (Model-Free)
 
 - [x] Reward graph and convergence time analysis
-
-## Reward Structure
-
-| Outcome | Reward |
-|----------|----------|
-| Win | +1 |
-| Draw | 0 |
-| Loss | -1 |
-| Wrong Move | -10 |
 
 ## Notes
 
