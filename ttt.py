@@ -33,7 +33,7 @@ class ticmactoe:
         
     def get_valid_action(self):
         #to know the legal moves
-        return np.where(np.flatten(self.board) == 0)[0].tolist()
+        return np.where(self.board.flatten() == 0)[0].tolist()
 
     def step(self, action):
         row = action//3
@@ -49,7 +49,7 @@ class ticmactoe:
         self.board[row, col] = self.current_player
 
         #winner
-        if(self.check_win != 0):
+        if(self.check_win() != 0):
             reward = 1
             done = True
             return tuple(self.board.flatten()), reward, done
@@ -67,7 +67,40 @@ class ticmactoe:
         return tuple(self.board.flatten()), reward, done
     
 
-            
+
+def render_board(state_tuple):
+    representation = {1:'X', 0:' ', -1:'O'}
+    print("\n-------------------\n")
+    for row in range(3):
+        row_state = state_tuple[row*3 : (row+1)*3]
+        row_str = " | ".join([representation[val] for val in row_state])
+        print(f"| {row_str} |")
+        print("-------------")
+
+def random_vs_human(env):
+    state = env.reset()
+    done = False
+
+    while not done:
+        render_board(state)
+
+        if env.current_player == 1 :
+            action = int(input("\nEnter valid action : "))
+        else :
+            valid_actions = env.get_valid_action()
+            action = random.choice(valid_actions)
+            print("\nBOT selected :",action)
+
+        state, reward, done = env.step(action)
+    render_board(state)
+
+
+
+if(__name__ == "__main__"):
+    env_1 = ticmactoe(starting_player=1)
+    random_vs_human(env_1)
+
+
 
               
 #COUNT
