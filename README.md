@@ -1,14 +1,8 @@
-# Tic-Tac-Toe RL
-
-Learning Reinforcement Learning from scratch by implementing a Tic-Tac-Toe environment and solving it using Dynamic Programming and Model-Free methods.
-
 ## TODOs
 
- - [x] Defining MDP tuple — State, Action, Transition Probability, Reward, γ (Discount Factor)
+- [x] Defining MDP tuple — State, Action, Transition Probability, Reward, γ (Discount Factor)
 
-- [x] Defining functions
-  - `step(action)`
-  - Hashable state representation
+- [x] `step(action)`
 
 - [x] Random move bot
 
@@ -19,6 +13,8 @@ Learning Reinforcement Learning from scratch by implementing a Tic-Tac-Toe envir
 - [ ] Q-Function (Model-Free)
 
 - [x] Reward graph and convergence time analysis
+
+- [ ] Ablations
 
 ## Notes
 
