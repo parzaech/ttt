@@ -22,14 +22,17 @@ class ticmactoe:
         #using a flattened matrix - tuple for every state will be helpful for making a hashtable for aquiring a particular state from Q-table
         return tuple(self.board.flatten())
 
-    def check_win(self):
-        check = np.concatenate([np.sum(self.board, axis = 0), np.sum(self.board, axis = 1)
-                                ,[np.trace(self.board), np.trace(np.fliplr(self.board))]]) #its a 1d array, np.sum throws a (1x3) and np.trace throws a scalar - needs to be converted
+    def check_terminal(self, state_tuple):
+        board = np.array(state_tuple, dtype=int).reshape(3, 3)
+        check = np.concatenate([np.sum(board, axis = 0), np.sum(board, axis = 1)
+                                ,[np.trace(board), np.trace(np.fliplr(board))]]) # its a 1d array, np.sum throws a (1x3) and np.trace throws a scalar - needs to be converted
         if np.any(check == 3):
-            return 1 # Player 1 wins
+            return True, 1 # Player 1 wins
         if np.any(check == -3):
-            return -1 # Player -1 wins
-        return 0
+            return True, -1 # Player -1 wins
+        if not np.any(board == 0):
+            return True, 0   # Draw (Game over, zero reward)
+        return False, 0
         
     def get_valid_action(self):
         #to know the legal moves
@@ -48,23 +51,45 @@ class ticmactoe:
         #reward
         self.board[row, col] = self.current_player
 
-        #winner
-        if(self.check_win() != 0):
-            reward = 1
+
+        is_done, term_reward = self.check_terminal(tuple(self.board.flatten()))
+        
+        if is_done:
+            #winner
+            if term_reward != 0:
+                reward = 1
+            else:
+            #draw
+                reward = 0
             done = True
             return tuple(self.board.flatten()), reward, done
-        #draw
-        elif(not np.any(self.board==0)):
-            reward = 0
-            done = True
-            return tuple(self.board.flatten()), reward, done
+
         #intermediate move
-        else:
-            reward = 0
-            done = False
+        reward = 0
+        done = False
         
         self.current_player *= -1
         return tuple(self.board.flatten()), reward, done
+    
+    def get_space_state(self,state_tuple):
+        valid_states = set()
+        def dfs(state_tuple, current_player):
+            #base case:
+            if state_tuple in valid_states:
+                return
+            valid_states.add(state_tuple)
+            is_terminal, _ = self.check_terminal(state_tuple)
+            if is_terminal:
+                return
+
+            for action in range(9):
+                if state_tuple[action] == 0: #empty place = new state
+                    new_state = list(state_tuple)
+                    new_state[action] = current_player
+                    dfs(tuple(new_state),current_player * -1)
+
+        dfs(state_tuple, 1)
+        return valid_states
     
 
 
@@ -96,11 +121,15 @@ def random_vs_human(env):
 
 
 
+# if(__name__ == "__main__"):
+#     env_1 = ticmactoe(starting_player=1)
+#     random_vs_human(env_1)
+
 if(__name__ == "__main__"):
     env_1 = ticmactoe(starting_player=1)
-    random_vs_human(env_1)
-
-
+    s = env_1.get_space_state(tuple([0]*9))
+    print(s)
+    print(len(s))
 
               
 #COUNT
@@ -143,3 +172,24 @@ if(__name__ == "__main__"):
     #if np.any(all_sums == 3): # Player 1 wins
     #if np.any(all_sums == -3): # Player -1 wins
 
+
+#Generate the State Space
+#dfs - around 5.5k states
+
+
+#Value iteration
+#initialise everything poorly and run iterations
+
+# def value_function(state_tuple):
+    
+#     return np.argmax((step(state_tuple))+d_factor*value_function(step(state_tuple)))
+
+
+
+
+
+
+
+
+
+    
