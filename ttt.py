@@ -120,16 +120,15 @@ def random_vs_human(env):
     render_board(state)
 
 
-
 # if(__name__ == "__main__"):
 #     env_1 = ticmactoe(starting_player=1)
 #     random_vs_human(env_1)
 
-if(__name__ == "__main__"):
-    env_1 = ticmactoe(starting_player=1)
-    s = env_1.get_space_state(tuple([0]*9))
-    print(s)
-    print(len(s))
+# if(__name__ == "__main__"):
+#     env_1 = ticmactoe(starting_player=1)
+#     s = env_1.get_space_state(tuple([0]*9))
+#     print(s)
+#     print(len(s))
 
               
 #COUNT
@@ -177,19 +176,122 @@ if(__name__ == "__main__"):
 #dfs - around 5.5k states
 
 
+def next_state(state_tuple, action, player):
+    new_state = list(state_tuple)
+    new_state[action] = player
+    return tuple(new_state)
+
 #Value iteration
-#initialise everything poorly and run iterations
+def value_function(env, gamma=1.0, epsilon=1e-6, max_iter=100,
+                   track_history=False):
+    if not 0 <= gamma <= 1:
+        raise ValueError("gamma must be between 0 and 1")
+    if epsilon <= 0:
+        raise ValueError("epsilon must be greater than 0")
+    if max_iter < 1:
+        raise ValueError("max_iter must be at least 1")
 
-# def value_function(state_tuple):
-    
-#     return np.argmax((step(state_tuple))+d_factor*value_function(step(state_tuple)))
+    all_states = env.get_space_state(tuple([0]*9))
+    V = {state: 0.0 for state in all_states}
+    history = []
+
+    def get_player(state):
+        count_x = sum(1 for v in state if v == 1)
+        count_o = sum(1 for v in state if v == -1)
+        return 1 if count_x == count_o else -1
+
+    for i in range(max_iter):
+        max_diff = 0.0
+        new_V = {}
+        for state, v_old in V.items():
+            is_terminal, winner = env.check_terminal(state)
+            if is_terminal:
+                if winner == 1:
+                    v_new = 1.0
+                elif winner == -1:
+                    v_new = -1.0
+                else:
+                    v_new = 0.0
+            else:
+                valid = [a for a in range(9) if state[a] == 0]
+                player = get_player(state)
+                if player == 1:
+                    v_new = max(gamma * V[next_state(state, a, player)] for a in valid)
+                else:
+                    v_new = sum(gamma * V[next_state(state, a, player)] for a in valid) / len(valid)
+            new_V[state] = v_new
+            diff = abs(v_new - v_old)
+            if diff > max_diff:
+                max_diff = diff
+        V = new_V
+        history.append(max_diff)
+        if max_diff < epsilon:
+            print(f"Converged in {i+1} iterations")
+            break
+
+    if track_history:
+        return V, history
+    return V
 
 
+def plot_gamma_convergence(env, gamma_values=(0.5, 0.8, 0.9, 0.99, 1.0),
+                           epsilon=1e-6, max_iter=100):
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        raise ImportError(
+            "plot_gamma_convergence requires matplotlib; "
+            "install it with 'python3 -m pip install matplotlib'"
+        ) from exc
+
+    if not gamma_values:
+        raise ValueError("gamma_values must contain at least one value")
+
+    fig, ax = plt.subplots()
+    for gamma in gamma_values:
+        _, history = value_function(
+            env,
+            gamma=gamma,
+            epsilon=epsilon,
+            max_iter=max_iter,
+            track_history=True,
+        )
+        iterations = range(1, len(history) + 1)
+        ax.plot(iterations, history, marker="o", label=f"gamma={gamma}")
+
+    ax.axhline(
+        epsilon,
+        color="black",
+        linestyle="--",
+        linewidth=1,
+        label=f"epsilon={epsilon:g}",
+    )
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Maximum value change")
+    ax.set_title("Value-iteration convergence for different gamma values")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    fig.tight_layout()
+    plt.show()
+    return fig, ax
 
 
+def extract_policy(env, V):
+    policy = {}
+    for state in V:
+        count_x = sum(1 for v in state if v == 1)
+        count_o = sum(1 for v in state if v == -1)
+        if count_x != count_o:
+            continue
+        is_terminal, _ = env.check_terminal(state)
+        if is_terminal:
+            continue
+        valid = [a for a in range(9) if state[a] == 0]
+        values = [V[next_state(state, a, 1)] for a in valid]
+        policy[state] = valid[np.argmax(values)]
+    return policy
 
 
-
-
-
-    
+if __name__ == "__main__":
+    env = ticmactoe(starting_player=1)
+    plot_gamma_convergence(env)
